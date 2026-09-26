@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Pulse Stopwatch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<style>
+  :root{
+    --bg-1:#120c2b;
+    --bg-2:#1c1140;
+    --cyan:#00e5c7;
+    --pink:#ff3d81;
+    --amber:#ffb703;
+    --violet:#8b5cf6;
+    --ink:#f4f1fb;
+    --ink-dim:#a9a3c9;
+    --panel: rgba(255,255,255,0.05);
+    --panel-border: rgba(255,255,255,0.10);
+    --radius-lg: 28px;
+    --radius-md: 16px;
+    box-sizing:border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    height:100%;
+    margin:0;
+  }
+  html{scroll-padding-top: env(safe-area-inset-top, 0px);}
+  body{
+    min-height:100%;
+    background:
+      radial-gradient(circle at 15% 10%, rgba(139,92,246,0.35), transparent 45%),
+      radial-gradient(circle at 85% 20%, rgba(0,229,199,0.22), transparent 40%),
+      radial-gradient(circle at 50% 100%, rgba(255,61,129,0.18), transparent 50%),
+      linear-gradient(160deg, var(--bg-1), var(--bg-2));
+    font-family:'Inter', ui-sans-serif, system-ui, sans-serif;
+    color:var(--ink);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:32px 16px;
+    overflow-x:hidden;
+  }
+  #root{width:100%; max-width:480px;}
+
+  .card{
+    background:var(--panel);
+    border:1px solid var(--panel-border);
+    backdrop-filter: blur(18px);
+    border-radius:var(--radius-lg);
+    padding:32px 28px 28px;
+    box-shadow: 0 30px 60px -20px rgba(0,0,0,0.6);
+  }
+
+  .eyebrow-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:22px;
+  }
+  .brand{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:600;
+    font-size:15px;
+    letter-spacing:0.02em;
+    color:var(--ink);
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .brand .dot{
+    width:9px;height:9px;border-radius:50%;
+    background: conic-gradient(from 0deg, var(--cyan), var(--pink), var(--amber), var(--cyan));
+    flex-shrink:0;
+  }
+  .mode-toggle{
+    display:flex;
+    background: rgba(255,255,255,0.06);
+    border:1px solid var(--panel-border);
+    border-radius:999px;
+    padding:3px;
+    gap:2px;
+  }
+  .mode-toggle button{
+    border:none;
+    background:transparent;
+    color:var(--ink-dim);
+    font-family:'Inter', sans-serif;
+    font-size:12px;
+    font-weight:600;
+    padding:6px 12px;
+    border-radius:999px;
+    cursor:pointer;
+    transition: color .25s ease, background .25s ease;
+  }
+  .mode-toggle button.active{
+    background: linear-gradient(135deg, var(--cyan), var(--violet));
+    color:#0c0820;
+  }
+
+  .ring-wrap{
+    position:relative;
+    width:100%;
+    aspect-ratio:1/1;
+    max-width:320px;
+    margin:8px auto 26px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  svg.ring{ position:absolute; inset:0; width:100%; height:100%; transform:rotate(-90deg); }
+  .ring-track{ fill:none; stroke:rgba(255,255,255,0.07); stroke-width:10; }
+  .ring-progress{
+    fill:none;
+    stroke-width:10;
+    stroke-linecap:round;
+    stroke: url(#ringGradient);
+    transition: stroke-dashoffset 0.08s linear;
+  }
+  .ring-center{
+    position:relative;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    text-align:center;
+  }
+  .time-main{
+    font-family:'Space Grotesk', monospace;
+    font-weight:700;
+    font-size:clamp(38px, 9vw, 52px);
+    letter-spacing:0.01em;
+    line-height:1;
+    background: linear-gradient(120deg, var(--cyan), var(--pink) 60%, var(--amber));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+    font-variant-numeric: tabular-nums;
+  }
+  .time-ms{
+    font-family:'Space Grotesk', monospace;
+    font-weight:600;
+    font-size:16px;
+    color:var(--ink-dim);
+    font-variant-numeric: tabular-nums;
+  }
+  .status-pill{
+    margin-top:4px;
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:0.06em;
+    padding:4px 12px;
+    border-radius:999px;
+    color:#0c0820;
+    background: var(--ink-dim);
+  }
+  .status-pill.running{ background: linear-gradient(120deg, var(--cyan), #7cf9d8); }
+  .status-pill.paused{ background: linear-gradient(120deg, var(--amber), #ffd166); }
+  .status-pill.idle{ background: rgba(255,255,255,0.12); color: var(--ink-dim); }
+
+  .controls{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap:12px;
+    margin-bottom:8px;
+  }
+  .controls.running-layout{ grid-template-columns: 1fr 1fr; }
+  button.ctrl{
+    border:none;
+    cursor:pointer;
+    font-family:'Inter', sans-serif;
+    font-weight:600;
+    font-size:15px;
+    padding:15px 18px;
+    border-radius:var(--radius-md);
+    transition: transform .12s ease, filter .2s ease;
+    color:#0c0820;
+  }
+  button.ctrl:active{ transform: scale(0.96); }
+  .btn-start{ background: linear-gradient(135deg, var(--cyan), #5be8d0); grid-column: span 2; }
+  .btn-pause{ background: linear-gradient(135deg, var(--amber), #ffd166); }
+  .btn-resume{ background: linear-gradient(135deg, var(--cyan), #5be8d0); }
+  .btn-lap{ background: linear-gradient(135deg, var(--violet), #b39dff); color:var(--ink); }
+  .btn-reset{
+    background: rgba(255,255,255,0.06);
+    color: var(--ink);
+    border:1px solid var(--panel-border);
+  }
+  button.ctrl:disabled{ opacity:0.35; cursor:not-allowed; transform:none; }
+
+  .laps{
+    margin-top:22px;
+    border-top:1px solid var(--panel-border);
+    padding-top:16px;
+  }
+  .laps-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:10px;
+  }
+  .laps-title{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:13px;
+    font-weight:600;
+    color:var(--ink-dim);
+  }
+  .laps-best{
+    font-size:11px;
+    color:var(--ink-dim);
+    display:flex;
+    gap:10px;
+  }
+  .laps-best span.fastest{ color: var(--cyan); }
+  .laps-best span.slowest{ color: var(--pink); }
+  .laps-list{
+    max-height:200px;
+    overflow-y:auto;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    padding-right:2px;
+  }
+  .laps-list::-webkit-scrollbar{ width:6px; }
+  .laps-list::-webkit-scrollbar-thumb{ background:rgba(255,255,255,0.15); border-radius:3px; }
+  .lap-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:10px 12px;
+    border-radius:12px;
+    background:rgba(255,255,255,0.03);
+    font-family:'Space Grotesk', monospace;
+    font-size:13px;
+    font-variant-numeric: tabular-nums;
+  }
+  .lap-row.fastest{ background:rgba(0,229,199,0.12); }
+  .lap-row.slowest{ background:rgba(255,61,129,0.12); }
+  .lap-index{
+    color:var(--ink-dim);
+    font-family:'Inter', sans-serif;
+    font-size:12px;
+    font-weight:600;
+    width:44px;
+  }
+  .lap-split{ color:var(--ink); font-weight:600; }
+  .lap-total{ color:var(--ink-dim); }
+  .laps-empty{
+    font-size:13px;
+    color:var(--ink-dim);
+    text-align:center;
+    padding:18px 0 6px;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .ring-progress{ transition:none; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+const { useState, useRef, useEffect, useCallback, useMemo } = React;
+
+function formatTime(ms, withMs) {
+  const totalMs = Math.max(0, Math.floor(ms));
+  const h = Math.floor(totalMs / 3600000);
+  const m = Math.floor((totalMs % 3600000) / 60000);
+  const s = Math.floor((totalMs % 60000) / 1000);
+  const cs = Math.floor((totalMs % 1000) / 10);
+  const pad = (n, l = 2) => String(n).padStart(l, "0");
+  const main = h > 0 ? `${pad(h)}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
+  return { main, ms: pad(cs) };
+}
+
+function Stopwatch() {
+  const [mode, setMode] = useState("stopwatch"); // "stopwatch" | "countdown"
+  const [elapsed, setElapsed] = useState(0);
+  const [running, setRunning] = useState(false);
+  const [started, setStarted] = useState(false);
+  const [laps, setLaps] = useState([]);
+  const [countdownTarget, setCountdownTarget] = useState(5 * 60 * 1000); // 5 min default
+
+  const startRef = useRef(null);
+  const baseRef = useRef(0);
+  const rafRef = useRef(null);
+
+  const tick = useCallback(() => {
+    const now = performance.now();
+    const delta = now - startRef.current + baseRef.current;
+    setElapsed(delta);
+    rafRef.current = requestAnimationFrame(tick);
+  }, []);
+
+  useEffect(() => {
+    if (running) {
+      startRef.current = performance.now();
+      rafRef.current = requestAnimationFrame(tick);
+    }
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
+  }, [running, tick]);
+
+  const handleStart = () => {
+    setStarted(true);
+    setRunning(true);
+    baseRef.current = elapsed;
+  };
+
+  const handlePause = () => {
+    setRunning(false);
+    baseRef.current = elapsed;
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+  };
+
+  const handleReset = () => {
+    setRunning(false);
+    setStarted(false);
+    setElapsed(0);
+    setLaps([]);
+    baseRef.current = 0;
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+  };
+
+  const handleLap = () => {
+    setLaps(prev => {
+      const prevTotal = prev.length ? prev[prev.length - 1].total : 0;
+      const split = elapsed - prevTotal;
+      return [...prev, { total: elapsed, split }];
+    });
+  };
+
+  const isCountdown = mode === "countdown";
+  const displayMs = isCountdown ? Math.max(countdownTarget - elapsed, 0) : elapsed;
+  const { main, ms } = formatTime(displayMs, true);
+
+  const status = !started ? "idle" : running ? "running" : "paused";
+  const statusLabel = status === "idle" ? "Ready" : status === "running" ? "Running" : "Paused";
+
+  const circumference = 2 * Math.PI * 140;
+  const progressFraction = isCountdown
+    ? countdownTarget > 0 ? (1 - displayMs / countdownTarget) : 0
+    : (elapsed % 60000) / 60000;
+  const dashOffset = circumference * (1 - Math.min(Math.max(progressFraction, 0), 1));
+
+  const fastestIdx = useMemo(() => {
+    if (laps.length < 2) return -1;
+    let idx = 0, min = laps[0].split;
+    laps.forEach((l, i) => { if (l.split < min) { min = l.split; idx = i; } });
+    return idx;
+  }, [laps]);
+
+  const slowestIdx = useMemo(() => {
+    if (laps.length < 2) return -1;
+    let idx = 0, max = laps[0].split;
+    laps.forEach((l, i) => { if (l.split > max) { max = l.split; idx = i; } });
+    return idx;
+  }, [laps]);
+
+  useEffect(() => {
+    if (isCountdown && running && displayMs <= 0) {
+      setRunning(false);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    }
+  }, [isCountdown, running, displayMs]);
+
+  const countdownPresets = [1, 3, 5, 10];
+
+  return (
+    <div className="card">
+      <div className="eyebrow-row">
+        <div className="brand"><span className="dot"></span>Pulse</div>
+        <div className="mode-toggle">
+          <button
+            className={mode === "stopwatch" ? "active" : ""}
+            onClick={() => { if (!started) setMode("stopwatch"); }}
+          >Stopwatch</button>
+          <button
+            className={mode === "countdown" ? "active" : ""}
+            onClick={() => { if (!started) setMode("countdown"); }}
+          >Countdown</button>
+        </div>
+      </div>
+
+      {mode === "countdown" && !started && (
+        <div style={{display:"flex", gap:8, marginBottom:18, flexWrap:"wrap"}}>
+          {countdownPresets.map(min => (
+            <button
+              key={min}
+              onClick={() => setCountdownTarget(min * 60 * 1000)}
+              className="ctrl"
+              style={{
+                padding:"8px 14px",
+                fontSize:13,
+                background: countdownTarget === min*60000 ? "linear-gradient(135deg, var(--violet), #b39dff)" : "rgba(255,255,255,0.06)",
+                color: countdownTarget === min*60000 ? "var(--ink)" : "var(--ink-dim)",
+                border:"1px solid var(--panel-border)"
+              }}
+            >{min} min</button>
+          ))}
+        </div>
+      )}
+
+      <div className="ring-wrap">
+        <svg className="ring" viewBox="0 0 300 300">
+          <defs>
+            <linearGradient id="ringGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#00e5c7" />
+              <stop offset="55%" stopColor="#ff3d81" />
+              <stop offset="100%" stopColor="#ffb703" />
+            </linearGradient>
+          </defs>
+          <circle className="ring-track" cx="150" cy="150" r="140" />
+          <circle
+            className="ring-progress"
+            cx="150" cy="150" r="140"
+            strokeDasharray={circumference}
+            strokeDashoffset={dashOffset}
+          />
+        </svg>
+        <div className="ring-center">
+          <div className="time-main">{main}</div>
+          <div className="time-ms">.{ms}</div>
+          <div className={`status-pill ${status}`}>{statusLabel}</div>
+        </div>
+      </div>
+
+      <div className="controls">
+        {!started && (
+          <button className="ctrl btn-start" onClick={handleStart}>Start</button>
+        )}
+        {started && running && (
+          <React.Fragment>
+            <button className="ctrl btn-pause" onClick={handlePause}>Pause</button>
+            <button className="ctrl btn-lap" onClick={handleLap} disabled={mode==="countdown"}>Lap</button>
+          </React.Fragment>
+        )}
+        {started && !running && (
+          <React.Fragment>
+            <button className="ctrl btn-resume" onClick={handleStart}>Resume</button>
+            <button className="ctrl btn-reset" onClick={handleReset}>Reset</button>
+          </React.Fragment>
+        )}
+      </div>
+      {started && running && (
+        <div className="controls" style={{gridTemplateColumns:"1fr", marginTop:0}}>
+          <button className="ctrl btn-reset" onClick={handleReset}>Reset</button>
+        </div>
+      )}
+
+      {mode === "stopwatch" && (
+        <div className="laps">
+          <div className="laps-head">
+            <div className="laps-title">Laps</div>
+            {laps.length > 1 && (
+              <div className="laps-best">
+                <span className="fastest">fastest</span>
+                <span className="slowest">slowest</span>
+              </div>
+            )}
+          </div>
+          {laps.length === 0 ? (
+            <div className="laps-empty">No laps yet — tap Lap while running.</div>
+          ) : (
+            <div className="laps-list">
+              {laps.map((l, i) => {
+                const cls = i === fastestIdx ? "fastest" : i === slowestIdx ? "slowest" : "";
+                const { main: sMain, ms: sMs } = formatTime(l.split, true);
+                const { main: tMain, ms: tMs } = formatTime(l.total, true);
+                return (
+                  <div key={i} className={`lap-row ${cls}`}>
+                    <span className="lap-index">Lap {i + 1}</span>
+                    <span className="lap-split">{sMain}.{sMs}</span>
+                    <span className="lap-total">{tMain}.{tMs}</span>
+                  </div>
+                );
+              }).reverse()}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<Stopwatch />);
+</script>
+</body>
+</html>
