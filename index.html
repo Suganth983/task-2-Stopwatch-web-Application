@@ -12,16 +12,16 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
 <style>
   :root{
-    --bg-1:#120c2b;
-    --bg-2:#1c1140;
+    --bg-1:#f4f1fb;
+    --bg-2:#ffffff;
     --cyan:#00e5c7;
     --pink:#ff3d81;
     --amber:#ffb703;
     --violet:#8b5cf6;
-    --ink:#f4f1fb;
-    --ink-dim:#a9a3c9;
-    --panel: rgba(255,255,255,0.05);
-    --panel-border: rgba(255,255,255,0.10);
+    --ink:#1c1140;
+    --ink-dim:#6b6390;
+    --panel: rgba(20,17,46,0.04);
+    --panel-border: rgba(20,17,46,0.10);
     --radius-lg: 28px;
     --radius-md: 16px;
     box-sizing:border-box;
@@ -37,9 +37,9 @@
   body{
     min-height:100%;
     background:
-      radial-gradient(circle at 15% 10%, rgba(139,92,246,0.35), transparent 45%),
-      radial-gradient(circle at 85% 20%, rgba(0,229,199,0.22), transparent 40%),
-      radial-gradient(circle at 50% 100%, rgba(255,61,129,0.18), transparent 50%),
+      radial-gradient(circle at 15% 10%, rgba(139,92,246,0.18), transparent 45%),
+      radial-gradient(circle at 85% 20%, rgba(0,229,199,0.14), transparent 40%),
+      radial-gradient(circle at 50% 100%, rgba(255,61,129,0.10), transparent 50%),
       linear-gradient(160deg, var(--bg-1), var(--bg-2));
     font-family:'Inter', ui-sans-serif, system-ui, sans-serif;
     color:var(--ink);
@@ -57,7 +57,7 @@
     backdrop-filter: blur(18px);
     border-radius:var(--radius-lg);
     padding:32px 28px 28px;
-    box-shadow: 0 30px 60px -20px rgba(0,0,0,0.6);
+    box-shadow: 0 30px 60px -20px rgba(20,17,46,0.18);
   }
 
   .eyebrow-row{
@@ -83,7 +83,7 @@
   }
   .mode-toggle{
     display:flex;
-    background: rgba(255,255,255,0.06);
+    background: rgba(20,17,46,0.05);
     border:1px solid var(--panel-border);
     border-radius:999px;
     padding:3px;
@@ -117,7 +117,7 @@
     justify-content:center;
   }
   svg.ring{ position:absolute; inset:0; width:100%; height:100%; transform:rotate(-90deg); }
-  .ring-track{ fill:none; stroke:rgba(255,255,255,0.07); stroke-width:10; }
+  .ring-track{ fill:none; stroke:rgba(20,17,46,0.08); stroke-width:10; }
   .ring-progress{
     fill:none;
     stroke-width:10;
@@ -165,7 +165,7 @@
   }
   .status-pill.running{ background: linear-gradient(120deg, var(--cyan), #7cf9d8); }
   .status-pill.paused{ background: linear-gradient(120deg, var(--amber), #ffd166); }
-  .status-pill.idle{ background: rgba(255,255,255,0.12); color: var(--ink-dim); }
+  .status-pill.idle{ background: rgba(20,17,46,0.08); color: var(--ink-dim); }
 
   .controls{
     display:grid;
@@ -191,7 +191,7 @@
   .btn-resume{ background: linear-gradient(135deg, var(--cyan), #5be8d0); }
   .btn-lap{ background: linear-gradient(135deg, var(--violet), #b39dff); color:var(--ink); }
   .btn-reset{
-    background: rgba(255,255,255,0.06);
+    background: rgba(20,17,46,0.04);
     color: var(--ink);
     border:1px solid var(--panel-border);
   }
@@ -231,14 +231,14 @@
     padding-right:2px;
   }
   .laps-list::-webkit-scrollbar{ width:6px; }
-  .laps-list::-webkit-scrollbar-thumb{ background:rgba(255,255,255,0.15); border-radius:3px; }
+  .laps-list::-webkit-scrollbar-thumb{ background:rgba(20,17,46,0.15); border-radius:3px; }
   .lap-row{
     display:flex;
     align-items:center;
     justify-content:space-between;
     padding:10px 12px;
     border-radius:12px;
-    background:rgba(255,255,255,0.03);
+    background:rgba(20,17,46,0.03);
     font-family:'Space Grotesk', monospace;
     font-size:13px;
     font-variant-numeric: tabular-nums;
@@ -402,7 +402,7 @@ function Stopwatch() {
               style={{
                 padding:"8px 14px",
                 fontSize:13,
-                background: countdownTarget === min*60000 ? "linear-gradient(135deg, var(--violet), #b39dff)" : "rgba(255,255,255,0.06)",
+                background: countdownTarget === min*60000 ? "linear-gradient(135deg, var(--violet), #b39dff)" : "rgba(20,17,46,0.05)",
                 color: countdownTarget === min*60000 ? "var(--ink)" : "var(--ink-dim)",
                 border:"1px solid var(--panel-border)"
               }}
